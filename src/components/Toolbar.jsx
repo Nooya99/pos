@@ -2,7 +2,6 @@ import React from 'react';
 
 export default function Toolbar({
   totalCount,
-  isRealtime,
   onOpenNewTransaction,
   onOpenExpenseManage,
   onResetData
@@ -14,19 +13,7 @@ export default function Toolbar({
         <span className="trx-count-bubble" id="badge-total-transactions">
           {totalCount}
         </span>
-        <span
-          className={`realtime-badge ${
-            isRealtime ? 'badge-realtime-on' : 'badge-realtime-off'
-          }`}
-          title={
-            isRealtime
-              ? 'Tersinkronisasi Realtime via Supabase'
-              : 'Mode Penyimpanan Lokal. Hubungkan Supabase untuk sync realtime antar HP & Laptop.'
-          }
-        >
-          <span className="pulse-dot"></span>
-          <span>{isRealtime ? 'Cloud Realtime' : 'Local Storage'}</span>
-        </span>
+
       </div>
 
       <div className="sketch-toolbar-right">

@@ -288,7 +288,6 @@ export default function App() {
       <main className="main-table-container">
         <Toolbar
           totalCount={filteredTransactions.length}
-          isRealtime={isSupabaseConfigured}
           onOpenNewTransaction={handleOpenNewTransaction}
           onOpenExpenseManage={() => setIsExpenseModalOpen(true)}
           onResetData={handleResetData}
