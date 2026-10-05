@@ -20,8 +20,8 @@ export default function Toolbar({
           }`}
           title={
             isRealtime
-              ? 'Tersinkronisasi Realtime via Firebase Firestore'
-              : 'Mode Penyimpanan Lokal. Hubungkan Firebase untuk sync realtime antar HP & Laptop.'
+              ? 'Tersinkronisasi Realtime via Supabase'
+              : 'Mode Penyimpanan Lokal. Hubungkan Supabase untuk sync realtime antar HP & Laptop.'
           }
         >
           <span className="pulse-dot"></span>

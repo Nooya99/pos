@@ -14,14 +14,14 @@ import {
   formatRp
 } from './data/initialData';
 import {
-  isFirebaseConfigured,
+  isSupabaseConfigured,
   subscribeTransactions,
   subscribeExpenses,
   saveTransactionToCloud,
   deleteTransactionFromCloud,
   saveExpenseToCloud,
   deleteExpenseFromCloud
-} from './services/firebase';
+} from './services/supabase';
 
 const STORAGE_KEY = 'kabel_pos_clean_v1';
 
@@ -79,9 +79,9 @@ export default function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // REALTIME SUBSCRIPTION VIA FIREBASE FIRESTORE
+  // REALTIME SUBSCRIPTION VIA SUPABASE
   useEffect(() => {
-    if (!isFirebaseConfigured) return;
+    if (!isSupabaseConfigured) return;
 
     const unsubTx = subscribeTransactions((cloudTransactions) => {
       setTransactions(cloudTransactions);
@@ -159,7 +159,7 @@ export default function App() {
       setTransactions((prev) =>
         prev.map((t) => (t.id === data.id ? { ...t, ...data } : t))
       );
-      if (isFirebaseConfigured) {
+      if (isSupabaseConfigured) {
         await saveTransactionToCloud(data);
       }
       showToast(`Pesanan ${data.customerName} berhasil diperbarui!`, 'success');
@@ -181,7 +181,7 @@ export default function App() {
       };
 
       setTransactions((prev) => [newTx, ...prev]);
-      if (isFirebaseConfigured) {
+      if (isSupabaseConfigured) {
         await saveTransactionToCloud(newTx);
       }
 
@@ -209,7 +209,7 @@ export default function App() {
     const updated = { ...tx, paymentStatus: nextStatus };
 
     setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await saveTransactionToCloud(updated);
     }
     showToast(`Status bayar ${tx.customerName}: ${nextStatus}`, 'info');
@@ -223,7 +223,7 @@ export default function App() {
     const updated = { ...tx, pickupStatus: nextStatus };
 
     setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await saveTransactionToCloud(updated);
     }
     showToast(`Status ambil ${tx.customerName}: ${nextStatus}`, 'info');
@@ -234,7 +234,7 @@ export default function App() {
     if (!tx) return;
     if (window.confirm(`Hapus transaksi ${tx.customerName} (${formatRp(tx.total)})?`)) {
       setTransactions((prev) => prev.filter((t) => t.id !== id));
-      if (isFirebaseConfigured) {
+      if (isSupabaseConfigured) {
         await deleteTransactionFromCloud(id);
       }
       showToast(`Transaksi ${tx.customerName} dihapus`, 'info');
@@ -248,7 +248,7 @@ export default function App() {
       date: new Date().toISOString()
     };
     setExpenses((prev) => [newExp, ...prev]);
-    if (isFirebaseConfigured) {
+    if (isSupabaseConfigured) {
       await saveExpenseToCloud(newExp);
     }
     showToast(`Expense ${formatRp(expData.amount)} berhasil dicatat`, 'success');
@@ -257,7 +257,7 @@ export default function App() {
   const handleDeleteExpense = async (id) => {
     if (window.confirm(`Hapus catatan expense ${id}?`)) {
       setExpenses((prev) => prev.filter((e) => e.id !== id));
-      if (isFirebaseConfigured) {
+      if (isSupabaseConfigured) {
         await deleteExpenseFromCloud(id);
       }
       showToast(`Expense ${id} dihapus`, 'info');
@@ -288,7 +288,7 @@ export default function App() {
       <main className="main-table-container">
         <Toolbar
           totalCount={filteredTransactions.length}
-          isRealtime={isFirebaseConfigured}
+          isRealtime={isSupabaseConfigured}
           onOpenNewTransaction={handleOpenNewTransaction}
           onOpenExpenseManage={() => setIsExpenseModalOpen(true)}
           onResetData={handleResetData}
