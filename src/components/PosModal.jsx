@@ -328,7 +328,6 @@ export default function PosModal({
                 >
                   <option value="Belum Diambil">Belum Diambil</option>
                   <option value="Sudah Diambil">Sudah Diambil</option>
-                  <option value="Sedang Dirakit">Sedang Dirakit</option>
                 </select>
               </div>
             </div>

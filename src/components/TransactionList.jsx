@@ -111,9 +111,6 @@ export default function TransactionList({
             if (t.pickupStatus === 'Belum Diambil') {
               pickClass = 'btn-status-unpicked';
               pickIcon = 'fa-box-open';
-            } else if (t.pickupStatus === 'Sedang Dirakit') {
-              pickClass = 'btn-status-assembling';
-              pickIcon = 'fa-screwdriver-wrench';
             }
 
             return (

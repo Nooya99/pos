@@ -114,44 +114,48 @@ export function subscribeExpenses(onUpdate, onError) {
  * Save / Update a Transaction
  */
 export async function saveTransactionToCloud(transaction) {
-  if (!supabase) return;
-  const { error } = await supabase
+  if (!supabase) return { error: new Error('Supabase not configured') };
+  const { data, error } = await supabase
     .from('transactions')
     .upsert(transaction);
   if (error) console.error("Error saving transaction:", error);
+  return { data, error };
 }
 
 /**
  * Delete a Transaction
  */
 export async function deleteTransactionFromCloud(id) {
-  if (!supabase) return;
-  const { error } = await supabase
+  if (!supabase) return { error: new Error('Supabase not configured') };
+  const { data, error } = await supabase
     .from('transactions')
     .delete()
     .eq('id', id);
   if (error) console.error("Error deleting transaction:", error);
+  return { data, error };
 }
 
 /**
  * Save / Update an Expense
  */
 export async function saveExpenseToCloud(expense) {
-  if (!supabase) return;
-  const { error } = await supabase
+  if (!supabase) return { error: new Error('Supabase not configured') };
+  const { data, error } = await supabase
     .from('expenses')
     .upsert(expense);
   if (error) console.error("Error saving expense:", error);
+  return { data, error };
 }
 
 /**
  * Delete an Expense
  */
 export async function deleteExpenseFromCloud(id) {
-  if (!supabase) return;
-  const { error } = await supabase
+  if (!supabase) return { error: new Error('Supabase not configured') };
+  const { data, error } = await supabase
     .from('expenses')
     .delete()
     .eq('id', id);
   if (error) console.error("Error deleting expense:", error);
+  return { data, error };
 }

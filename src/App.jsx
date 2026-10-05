@@ -83,13 +83,45 @@ export default function App() {
   useEffect(() => {
     if (!isSupabaseConfigured) return;
 
-    const unsubTx = subscribeTransactions((cloudTransactions) => {
-      setTransactions(cloudTransactions);
-    });
+    const unsubTx = subscribeTransactions(
+      (cloudTransactions) => {
+        if (cloudTransactions && cloudTransactions.length > 0) {
+          setTransactions(cloudTransactions);
+        } else {
+          // If cloud is empty but local has transactions, sync local to cloud
+          setTransactions((prev) => {
+            if (prev && prev.length > 0) {
+              prev.forEach((tx) => saveTransactionToCloud(tx));
+              return prev;
+            }
+            return cloudTransactions || [];
+          });
+        }
+      },
+      (error) => {
+        console.error('Supabase transactions error:', error);
+        showToast(`Koneksi Supabase: ${error.message || 'Gagal memuat transaksi'}`, 'danger');
+      }
+    );
 
-    const unsubExp = subscribeExpenses((cloudExpenses) => {
-      setExpenses(cloudExpenses);
-    });
+    const unsubExp = subscribeExpenses(
+      (cloudExpenses) => {
+        if (cloudExpenses && cloudExpenses.length > 0) {
+          setExpenses(cloudExpenses);
+        } else {
+          setExpenses((prev) => {
+            if (prev && prev.length > 0) {
+              prev.forEach((exp) => saveExpenseToCloud(exp));
+              return prev;
+            }
+            return cloudExpenses || [];
+          });
+        }
+      },
+      (error) => {
+        console.error('Supabase expenses error:', error);
+      }
+    );
 
     return () => {
       unsubTx();
@@ -160,9 +192,15 @@ export default function App() {
         prev.map((t) => (t.id === data.id ? { ...t, ...data } : t))
       );
       if (isSupabaseConfigured) {
-        await saveTransactionToCloud(data);
+        const res = await saveTransactionToCloud(data);
+        if (res?.error) {
+          showToast(`Gagal simpan ke Supabase: ${res.error.message}`, 'danger');
+        } else {
+          showToast(`Pesanan ${data.customerName} berhasil diperbarui di cloud!`, 'success');
+        }
+      } else {
+        showToast(`Pesanan ${data.customerName} berhasil diperbarui!`, 'success');
       }
-      showToast(`Pesanan ${data.customerName} berhasil diperbarui!`, 'success');
     } else {
       // New transaction
       const now = new Date();
@@ -182,13 +220,21 @@ export default function App() {
 
       setTransactions((prev) => [newTx, ...prev]);
       if (isSupabaseConfigured) {
-        await saveTransactionToCloud(newTx);
+        const res = await saveTransactionToCloud(newTx);
+        if (res?.error) {
+          showToast(`Perhatian: Gagal simpan ke Supabase (${res.error.message}). Disimpan di lokal.`, 'danger');
+        } else {
+          showToast(
+            `Transaksi baru ${data.customerName} (${formatRp(data.total)}) berhasil disimpan ke cloud!`,
+            'success'
+          );
+        }
+      } else {
+        showToast(
+          `Transaksi baru ${data.customerName} (${formatRp(data.total)}) berhasil disimpan!`,
+          'success'
+        );
       }
-
-      showToast(
-        `Transaksi baru ${data.customerName} (${formatRp(data.total)}) berhasil disimpan!`,
-        'success'
-      );
 
       // Celebratory confetti
       try {
@@ -210,7 +256,11 @@ export default function App() {
 
     setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
     if (isSupabaseConfigured) {
-      await saveTransactionToCloud(updated);
+      const res = await saveTransactionToCloud(updated);
+      if (res?.error) {
+        showToast(`Gagal update status di Supabase: ${res.error.message}`, 'danger');
+        return;
+      }
     }
     showToast(`Status bayar ${tx.customerName}: ${nextStatus}`, 'info');
   };
@@ -224,7 +274,11 @@ export default function App() {
 
     setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
     if (isSupabaseConfigured) {
-      await saveTransactionToCloud(updated);
+      const res = await saveTransactionToCloud(updated);
+      if (res?.error) {
+        showToast(`Gagal update status di Supabase: ${res.error.message}`, 'danger');
+        return;
+      }
     }
     showToast(`Status ambil ${tx.customerName}: ${nextStatus}`, 'info');
   };
@@ -235,7 +289,10 @@ export default function App() {
     if (window.confirm(`Hapus transaksi ${tx.customerName} (${formatRp(tx.total)})?`)) {
       setTransactions((prev) => prev.filter((t) => t.id !== id));
       if (isSupabaseConfigured) {
-        await deleteTransactionFromCloud(id);
+        const res = await deleteTransactionFromCloud(id);
+        if (res?.error) {
+          showToast(`Gagal hapus dari Supabase: ${res.error.message}`, 'danger');
+        }
       }
       showToast(`Transaksi ${tx.customerName} dihapus`, 'info');
     }
@@ -249,7 +306,11 @@ export default function App() {
     };
     setExpenses((prev) => [newExp, ...prev]);
     if (isSupabaseConfigured) {
-      await saveExpenseToCloud(newExp);
+      const res = await saveExpenseToCloud(newExp);
+      if (res?.error) {
+        showToast(`Gagal simpan expense ke Supabase: ${res.error.message}`, 'danger');
+        return;
+      }
     }
     showToast(`Expense ${formatRp(expData.amount)} berhasil dicatat`, 'success');
   };
@@ -258,7 +319,11 @@ export default function App() {
     if (window.confirm(`Hapus catatan expense ${id}?`)) {
       setExpenses((prev) => prev.filter((e) => e.id !== id));
       if (isSupabaseConfigured) {
-        await deleteExpenseFromCloud(id);
+        const res = await deleteExpenseFromCloud(id);
+        if (res?.error) {
+          showToast(`Gagal hapus expense dari Supabase: ${res.error.message}`, 'danger');
+          return;
+        }
       }
       showToast(`Expense ${id} dihapus`, 'info');
     }
