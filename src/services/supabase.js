@@ -159,3 +159,27 @@ export async function deleteExpenseFromCloud(id) {
   if (error) console.error("Error deleting expense:", error);
   return { data, error };
 }
+
+/**
+ * Fetch latest Transactions once
+ */
+export async function fetchTransactions() {
+  if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false });
+  return { data, error };
+}
+
+/**
+ * Fetch latest Expenses once
+ */
+export async function fetchExpenses() {
+  if (!supabase) return { data: [], error: new Error('Supabase not configured') };
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('*')
+    .order('date', { ascending: false });
+  return { data, error };
+}

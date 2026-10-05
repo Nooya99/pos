@@ -18,6 +18,8 @@ import {
   isSupabaseConfigured,
   subscribeTransactions,
   subscribeExpenses,
+  fetchTransactions,
+  fetchExpenses,
   saveTransactionToCloud,
   deleteTransactionFromCloud,
   saveExpenseToCloud,
@@ -80,6 +82,7 @@ export default function App() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // REALTIME SUBSCRIPTION VIA SUPABASE
   useEffect(() => {
@@ -192,6 +195,55 @@ export default function App() {
     return filteredTransactions
       .filter((t) => t.paymentStatus === 'PAID')
       .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+  }, [filteredTransactions]);
+
+  const filteredRjPackets = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.paymentStatus !== 'CANCELLED')
+      .reduce((sum, t) => {
+        if (!t.items || !Array.isArray(t.items)) {
+          if (t.productCategory === 'rj-only' || t.productCategory === 'both') {
+            return sum + 1;
+          }
+          return sum;
+        }
+        const rjItems = t.items.filter(
+          (it) => it.type === 'rj' || (it.name && it.name.toLowerCase().includes('rj'))
+        );
+        return sum + rjItems.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+      }, 0);
+  }, [filteredTransactions]);
+
+  const filteredRjSold = filteredRjPackets * 4;
+  const initialRjStock = 200;
+  const remainingRjStock = Math.max(0, initialRjStock - filteredRjSold);
+
+  const filteredLanSummary = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.paymentStatus !== 'CANCELLED')
+      .reduce(
+        (acc, t) => {
+          if (!t.items || !Array.isArray(t.items)) {
+            if (t.productCategory === 'lan-only' || t.productCategory === 'both') {
+              acc.orders += 1;
+              acc.meters += 1;
+            }
+            return acc;
+          }
+          const lanItems = t.items.filter(
+            (it) =>
+              it.type === 'lan' ||
+              (it.name && it.name.toLowerCase().includes('lan')) ||
+              (it.name && it.name.toLowerCase().includes('kabel'))
+          );
+          if (lanItems.length > 0) {
+            acc.orders += lanItems.length;
+            acc.meters += lanItems.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+          }
+          return acc;
+        },
+        { orders: 0, meters: 0 }
+      );
   }, [filteredTransactions]);
 
   // Handlers
@@ -351,14 +403,45 @@ export default function App() {
     }
   };
 
-  const handleResetData = () => {
-    if (window.confirm('Reset seluruh data transaksi dan expense?')) {
-      localStorage.removeItem(STORAGE_KEY);
-      setTransactions(DEFAULT_TRANSACTIONS);
-      setExpenses(DEFAULT_EXPENSES);
-      setInitialBalance(DEFAULT_INITIAL_BALANCE);
-      setProductFilter('all');
-      showToast('Semua data berhasil dibersihkan', 'info');
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      if (isSupabaseConfigured) {
+        const [txRes, expRes] = await Promise.all([
+          fetchTransactions(),
+          fetchExpenses()
+        ]);
+
+        if (txRes.error) {
+          throw new Error(txRes.error.message || 'Gagal memuat transaksi');
+        }
+        if (expRes.error) {
+          throw new Error(expRes.error.message || 'Gagal memuat pengeluaran');
+        }
+
+        if (txRes.data) {
+          setTransactions(txRes.data);
+        }
+        if (expRes.data) {
+          setExpenses(expRes.data);
+        }
+        showToast('Data berhasil diperbarui (Refresh)!', 'success');
+      } else {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.transactions) setTransactions(parsed.transactions);
+          if (parsed.expenses) setExpenses(parsed.expenses);
+        }
+        showToast('Data lokal berhasil di-refresh!', 'info');
+      }
+    } catch (err) {
+      console.error('Refresh error:', err);
+      showToast(`Gagal refresh data: ${err.message}`, 'danger');
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 400);
     }
   };
 
@@ -379,7 +462,8 @@ export default function App() {
           onOpenNewTransaction={handleOpenNewTransaction}
           onOpenQrisModal={() => setIsQrisModalOpen(true)}
           onOpenExpenseManage={() => setIsExpenseModalOpen(true)}
-          onResetData={handleResetData}
+          onRefreshData={handleRefreshData}
+          isRefreshing={isRefreshing}
         />
 
         <ProductFilter
@@ -402,6 +486,18 @@ export default function App() {
             </span>
           </div>
           <div className="footer-summary-right">
+            <div className="footer-stat-chip chip-rj" title="Total RJ45 terjual dan sisa stok dari 200 pcs">
+              <i className="fa-solid fa-microchip"></i>
+              <span>Total RJ:</span>
+              <strong>{filteredRjSold} RJ</strong>
+              <span className="chip-stock-sub">({filteredRjPackets} pkt | Stok: {remainingRjStock} pcs)</span>
+            </div>
+            <div className="footer-stat-chip chip-lan" title="Total Kabel LAN terjual">
+              <i className="fa-solid fa-ethernet"></i>
+              <span>Total Kabel:</span>
+              <strong>{filteredLanSummary.orders} buah</strong>
+              <span className="chip-stock-sub">({filteredLanSummary.meters} meter)</span>
+            </div>
             <div className="footer-stat-chip chip-pending" title="Total tagihan yang belum dibayar (PENDING)">
               <i className="fa-solid fa-clock"></i>
               <span>Total RP Pending:</span>

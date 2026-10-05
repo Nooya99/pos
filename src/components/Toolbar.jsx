@@ -5,7 +5,8 @@ export default function Toolbar({
   onOpenNewTransaction,
   onOpenQrisModal,
   onOpenExpenseManage,
-  onResetData
+  onRefreshData,
+  isRefreshing = false
 }) {
   return (
     <div className="table-sketch-header">
@@ -51,12 +52,13 @@ export default function Toolbar({
 
         <button
           type="button"
-          className="btn-icon-square"
-          id="btn-reset-data"
-          title="Reset ke Data Sample"
-          onClick={onResetData}
+          className={`btn-icon-square btn-refresh ${isRefreshing ? 'is-refreshing' : ''}`}
+          id="btn-refresh-data"
+          title="Refresh Data & Sinkronisasi"
+          onClick={onRefreshData}
+          disabled={isRefreshing}
         >
-          <i className="fa-solid fa-rotate-left"></i>
+          <i className={`fa-solid fa-arrows-rotate ${isRefreshing ? 'fa-spin' : ''}`}></i>
         </button>
       </div>
     </div>

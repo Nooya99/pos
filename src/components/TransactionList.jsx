@@ -19,6 +19,54 @@ export default function TransactionList({
   const pendingCount = transactions.filter((t) => t.paymentStatus === 'PENDING').length;
   const paidCount = transactions.filter((t) => t.paymentStatus === 'PAID').length;
 
+  // Hitung total RJ45 terjual (1 paket = 4 RJ) & sisa stok dari 200 pcs awal
+  const totalRjPackets = transactions
+    .filter((t) => t.paymentStatus !== 'CANCELLED')
+    .reduce((sum, t) => {
+      if (!t.items || !Array.isArray(t.items)) {
+        if (t.productCategory === 'rj-only' || t.productCategory === 'both') {
+          return sum + 1;
+        }
+        return sum;
+      }
+      const rjItems = t.items.filter(
+        (it) => it.type === 'rj' || (it.name && it.name.toLowerCase().includes('rj'))
+      );
+      return sum + rjItems.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+    }, 0);
+
+  const totalRjSold = totalRjPackets * 4;
+  const initialStock = 200;
+  const remainingStock = Math.max(0, initialStock - totalRjSold);
+  const isStockLow = remainingStock <= 20;
+
+  // Hitung total Kabel LAN terjual (jumlah buah kabel & meter)
+  const totalLanSummary = transactions
+    .filter((t) => t.paymentStatus !== 'CANCELLED')
+    .reduce(
+      (acc, t) => {
+        if (!t.items || !Array.isArray(t.items)) {
+          if (t.productCategory === 'lan-only' || t.productCategory === 'both') {
+            acc.orders += 1;
+            acc.meters += 1;
+          }
+          return acc;
+        }
+        const lanItems = t.items.filter(
+          (it) =>
+            it.type === 'lan' ||
+            (it.name && it.name.toLowerCase().includes('lan')) ||
+            (it.name && it.name.toLowerCase().includes('kabel'))
+        );
+        if (lanItems.length > 0) {
+          acc.orders += lanItems.length;
+          acc.meters += lanItems.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+        }
+        return acc;
+      },
+      { orders: 0, meters: 0 }
+    );
+
   if (transactions.length === 0) {
     return (
       <div className="table-responsive-wrapper">
@@ -204,9 +252,48 @@ export default function TransactionList({
         </tbody>
         <tfoot>
           <tr className="tfoot-summary-row">
-            <td colSpan={3} className="td-foot-label">
+            {/* 1 & 2: TANGGAL & NAMA */}
+            <td colSpan={2} className="td-foot-label">
               <i className="fa-solid fa-receipt"></i> <strong>TOTAL TABEL INCOME:</strong>
             </td>
+
+            {/* 3: PESANAN (TEPAT DI SEBELAH KIRI TULISAN PENDING) */}
+            <td className="td-foot-stock">
+              <div className="tfoot-stock-box">
+                {/* 1. TOTAL RJ & SISA STOK DARI 200 PCS */}
+                <div className="tfoot-stock-item rj-item">
+                  <div className="tfoot-stock-main">
+                    <span className="rj-badge-icon" title="Konektor RJ45">
+                      <i className="fa-solid fa-microchip"></i>
+                    </span>
+                    <span className="rj-sold-title">
+                      Total RJ: <strong>{totalRjSold} RJ</strong>
+                    </span>
+                    <span className="rj-packets-hint">({totalRjPackets} paket)</span>
+                  </div>
+                  <div className="tfoot-stock-sub">
+                    <small className={`rj-stock-text ${isStockLow ? 'stock-low' : ''}`} title="1 paket = 4 RJ. Stok awal 200 pcs, berkurang otomatis setiap ada pembelian.">
+                      <i className="fa-solid fa-boxes-stacked"></i> Stok RJ: <strong>{remainingStock} pcs</strong> / {initialStock} pcs
+                    </small>
+                  </div>
+                </div>
+
+                {/* 2. TOTAL KABEL TERJUAL (DI BAWAH RJ) */}
+                <div className="tfoot-stock-item lan-item">
+                  <div className="tfoot-stock-main">
+                    <span className="lan-badge-icon" title="Kabel LAN">
+                      <i className="fa-solid fa-ethernet"></i>
+                    </span>
+                    <span className="lan-sold-title">
+                      Total Kabel: <strong>{totalLanSummary.orders} buah</strong>
+                    </span>
+                    <span className="lan-meters-hint">({totalLanSummary.meters} meter)</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            {/* 4: PAYMENT (TULISAN PENDING & PAID) */}
             <td className="td-foot-payment">
               <div className="tfoot-totals">
                 <div className="tfoot-stat stat-pending" title="Total pembayaran pending (belum bayar)">
@@ -219,6 +306,8 @@ export default function TransactionList({
                 </div>
               </div>
             </td>
+
+            {/* 5 & 6: STATUS & AKSI */}
             <td colSpan={2} className="td-foot-status">
               <div className="tfoot-status-summary">
                 <span className="text-pending-dot">
