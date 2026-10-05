@@ -3,6 +3,7 @@ import React from 'react';
 export default function Toolbar({
   totalCount,
   onOpenNewTransaction,
+  onOpenQrisModal,
   onOpenExpenseManage,
   onResetData
 }) {
@@ -25,6 +26,17 @@ export default function Toolbar({
         >
           <i className="fa-solid fa-cart-plus"></i>
           <span>+ Transaksi Baru</span>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-outline btn-sm btn-qris-toggle"
+          id="btn-open-qris-modal"
+          onClick={onOpenQrisModal}
+          title="Tampilkan QRIS Pembayaran"
+        >
+          <i className="fa-solid fa-qrcode"></i>
+          <span>QRIS</span>
         </button>
 
         <button

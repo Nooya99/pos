@@ -6,6 +6,7 @@ import ProductFilter from './components/ProductFilter';
 import TransactionList from './components/TransactionList';
 import PosModal from './components/PosModal';
 import ExpenseModal from './components/ExpenseModal';
+import QrisModal from './components/QrisModal';
 import Toast from './components/Toast';
 import {
   DEFAULT_TRANSACTIONS,
@@ -77,6 +78,7 @@ export default function App() {
   const [isPosModalOpen, setIsPosModalOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isQrisModalOpen, setIsQrisModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   // REALTIME SUBSCRIPTION VIA SUPABASE
@@ -354,6 +356,7 @@ export default function App() {
         <Toolbar
           totalCount={filteredTransactions.length}
           onOpenNewTransaction={handleOpenNewTransaction}
+          onOpenQrisModal={() => setIsQrisModalOpen(true)}
           onOpenExpenseManage={() => setIsExpenseModalOpen(true)}
           onResetData={handleResetData}
         />
@@ -395,6 +398,12 @@ export default function App() {
         expenses={expenses}
         onAddExpense={handleAddExpense}
         onDeleteExpense={handleDeleteExpense}
+      />
+
+      {/* MODAL POPUP QRIS */}
+      <QrisModal
+        isOpen={isQrisModalOpen}
+        onClose={() => setIsQrisModalOpen(false)}
       />
 
       {/* TOAST NOTIFIKASI */}

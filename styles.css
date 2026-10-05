@@ -1878,3 +1878,89 @@ body {
     font-size: 0.82rem;
   }
 }
+
+/* ==========================================================
+   QRIS MODAL & BUTTON STYLES
+   ========================================================== */
+.btn-qris-toggle {
+  background: #ffffff;
+  color: var(--green);
+  border: 1.5px solid var(--green);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-qris-toggle:hover {
+  background: var(--green);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 61, 58, 0.2);
+}
+
+.btn-qris-toggle i {
+  color: #e67e22;
+}
+
+.btn-qris-toggle:hover i {
+  color: #ffffff;
+}
+
+.qris-modal-box {
+  max-width: 440px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.qris-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qris-image-wrapper {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px dashed rgba(15, 61, 58, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qris-image {
+  max-width: 100%;
+  max-height: 400px;
+  height: auto;
+  border-radius: 8px;
+  object-fit: contain;
+  display: block;
+}
+
+.qris-info-box {
+  margin-top: 16px;
+  background: rgba(15, 61, 58, 0.06);
+  border: 1px solid rgba(15, 61, 58, 0.12);
+  border-radius: 10px;
+  padding: 10px 14px;
+  width: 100%;
+}
+
+.qris-info-text {
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0;
+  text-align: left;
+}
+
+.qris-info-text i {
+  color: #e67e22;
+  margin-right: 6px;
+}
+
