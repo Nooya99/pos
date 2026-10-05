@@ -1,7 +1,7 @@
 import React from 'react';
 import { formatRp } from '../data/initialData';
 
-export default function SummaryCards({ balance, income, expense }) {
+export default function SummaryCards({ balance, income, expense, pendingIncome = 0 }) {
   return (
     <section className="top-cards-row">
       {/* 1. YOUR BALANCE */}
@@ -18,6 +18,11 @@ export default function SummaryCards({ balance, income, expense }) {
       <div className="summary-card card-income">
         <div className="summary-card-header">
           <span className="card-title">INCOME</span>
+          {pendingIncome > 0 && (
+            <span className="badge-pending-pill" title="Total tagihan belum dibayar (PENDING)">
+              <i className="fa-solid fa-clock"></i> Pending: {formatRp(pendingIncome)}
+            </span>
+          )}
         </div>
         <div className="card-main-val">
           <h2>{formatRp(income)}</h2>

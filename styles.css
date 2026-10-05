@@ -248,6 +248,20 @@ body {
   text-transform: uppercase;
 }
 
+.badge-pending-pill {
+  background: var(--bordo-dark);
+  color: var(--cream);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(245, 218, 191, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
 .card-main-val {
   display: flex;
   align-items: baseline;
@@ -811,21 +825,158 @@ body {
   color: var(--cream);
 }
 
+/* TFOOT Summary Styling inside Table */
+.sketch-table tfoot {
+  background: var(--cream-surface);
+}
+
+.tfoot-summary-row td {
+  padding: 14px 18px !important;
+  vertical-align: middle;
+  border-top: 2.5px solid var(--green) !important;
+  background: var(--cream-surface) !important;
+}
+
+.td-foot-label {
+  font-size: 0.88rem;
+  color: var(--green);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.td-foot-label i {
+  margin-right: 6px;
+  color: var(--bordo);
+}
+
+.tfoot-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tfoot-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+
+.tfoot-badge-pending {
+  background: var(--bordo);
+  color: var(--cream);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  letter-spacing: 0.5px;
+}
+
+.tfoot-val-pending {
+  color: var(--bordo);
+  font-weight: 800;
+}
+
+.tfoot-badge-paid {
+  background: var(--green);
+  color: var(--cream);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  letter-spacing: 0.5px;
+}
+
+.tfoot-val-paid {
+  color: var(--green);
+  font-weight: 800;
+}
+
+.tfoot-status-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.text-pending-dot {
+  color: var(--bordo);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.text-paid-dot {
+  color: var(--green);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 /* Table Footer Bar */
 .table-sketch-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 22px;
+  padding: 12px 20px;
   background: var(--cream-surface);
   border-top: 1.5px solid var(--cream-border);
   font-size: 0.86rem;
   color: var(--text-muted);
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.table-sketch-footer strong {
-  color: var(--bordo);
+.footer-summary-left strong {
+  color: var(--green);
   font-weight: 800;
+}
+
+.footer-summary-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.footer-stat-chip.chip-pending {
+  background: rgba(108, 21, 30, 0.1);
+  border: 1.5px solid var(--bordo);
+  color: var(--bordo);
+}
+
+.footer-stat-chip.chip-pending strong {
+  font-family: var(--font-mono);
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--bordo);
+}
+
+.footer-stat-chip.chip-paid {
+  background: rgba(15, 61, 58, 0.1);
+  border: 1.5px solid var(--green);
+  color: var(--green);
+}
+
+.footer-stat-chip.chip-paid strong {
+  font-family: var(--font-mono);
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--green);
 }
 
 /* ==========================================================
@@ -1813,10 +1964,49 @@ body {
     border-radius: var(--radius-sm);
   }
 
+  /* Tfoot Mobile Handling */
+  .sketch-table tfoot {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 12px;
+  }
+  .sketch-table tfoot tr {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    background: #ffffff !important;
+    border: 2px solid var(--green) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 14px !important;
+    box-shadow: 0 4px 14px rgba(15, 61, 58, 0.08) !important;
+  }
+  .sketch-table tfoot td {
+    display: flex !important;
+    padding: 0 !important;
+    border: none !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
   /* Table Footer */
   .table-sketch-footer {
     padding: 12px 14px;
     font-size: 0.8rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .footer-summary-right {
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+  }
+  .footer-stat-chip {
+    flex: 1;
+    justify-content: center;
+    padding: 6px 10px;
+    font-size: 0.76rem;
   }
 
   /* MODALS MOBILE OPTIMIZATION */

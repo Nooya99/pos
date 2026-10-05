@@ -8,6 +8,17 @@ export default function TransactionList({
   onEditTransaction,
   onDeleteTransaction
 }) {
+  const pendingTotal = transactions
+    .filter((t) => t.paymentStatus === 'PENDING')
+    .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+
+  const paidTotal = transactions
+    .filter((t) => t.paymentStatus === 'PAID')
+    .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+
+  const pendingCount = transactions.filter((t) => t.paymentStatus === 'PENDING').length;
+  const paidCount = transactions.filter((t) => t.paymentStatus === 'PAID').length;
+
   if (transactions.length === 0) {
     return (
       <div className="table-responsive-wrapper">
@@ -191,6 +202,35 @@ export default function TransactionList({
             );
           })}
         </tbody>
+        <tfoot>
+          <tr className="tfoot-summary-row">
+            <td colSpan={3} className="td-foot-label">
+              <i className="fa-solid fa-receipt"></i> <strong>TOTAL TABEL INCOME:</strong>
+            </td>
+            <td className="td-foot-payment">
+              <div className="tfoot-totals">
+                <div className="tfoot-stat stat-pending" title="Total pembayaran pending (belum bayar)">
+                  <span className="tfoot-badge-pending">PENDING</span>
+                  <span className="tfoot-val-pending">{formatRp(pendingTotal)}</span>
+                </div>
+                <div className="tfoot-stat stat-paid" title="Total pembayaran lunas (PAID)">
+                  <span className="tfoot-badge-paid">PAID</span>
+                  <span className="tfoot-val-paid">{formatRp(paidTotal)}</span>
+                </div>
+              </div>
+            </td>
+            <td colSpan={2} className="td-foot-status">
+              <div className="tfoot-status-summary">
+                <span className="text-pending-dot">
+                  <i className="fa-solid fa-clock"></i> {pendingCount} Pending
+                </span>
+                <span className="text-paid-dot">
+                  <i className="fa-solid fa-circle-check"></i> {paidCount} Lunas
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   );

@@ -158,6 +158,12 @@ export default function App() {
       .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
   }, [transactions]);
 
+  const pendingIncome = useMemo(() => {
+    return transactions
+      .filter((t) => t.paymentStatus === 'PENDING')
+      .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+  }, [transactions]);
+
   const totalExpense = useMemo(() => {
     return expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   }, [expenses]);
@@ -175,6 +181,18 @@ export default function App() {
       return true;
     });
   }, [transactions, productFilter]);
+
+  const filteredPendingTotal = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.paymentStatus === 'PENDING')
+      .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+  }, [filteredTransactions]);
+
+  const filteredPaidTotal = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.paymentStatus === 'PAID')
+      .reduce((sum, t) => sum + (Number(t.total) || 0), 0);
+  }, [filteredTransactions]);
 
   // Handlers
   const handleOpenNewTransaction = () => {
@@ -351,6 +369,7 @@ export default function App() {
         balance={balance}
         income={income}
         expense={totalExpense}
+        pendingIncome={pendingIncome}
       />
 
       {/* DAFTAR TRANSAKSI & TOOLBAR */}
@@ -381,6 +400,18 @@ export default function App() {
             <span>
               Menampilkan <strong>{filteredTransactions.length}</strong> transaksi
             </span>
+          </div>
+          <div className="footer-summary-right">
+            <div className="footer-stat-chip chip-pending" title="Total tagihan yang belum dibayar (PENDING)">
+              <i className="fa-solid fa-clock"></i>
+              <span>Total RP Pending:</span>
+              <strong>{formatRp(filteredPendingTotal)}</strong>
+            </div>
+            <div className="footer-stat-chip chip-paid" title="Total tagihan yang sudah lunas (PAID)">
+              <i className="fa-solid fa-circle-check"></i>
+              <span>Total Masuk:</span>
+              <strong>{formatRp(filteredPaidTotal)}</strong>
+            </div>
           </div>
         </div>
       </main>
