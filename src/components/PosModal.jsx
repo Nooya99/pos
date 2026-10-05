@@ -15,6 +15,9 @@ export default function PosModal({
   const [paymentStatus, setPaymentStatus] = useState('PENDING');
   const [pickupStatus, setPickupStatus] = useState('Belum Diambil');
 
+  const [isCustomTotal, setIsCustomTotal] = useState(false);
+  const [customTotal, setCustomTotal] = useState('');
+
   // When modal opens or editTransaction changes, populate state
   useEffect(() => {
     if (!isOpen) return;
@@ -27,13 +30,31 @@ export default function PosModal({
       setCheckRj(hasRj);
 
       const lanItem = editTransaction.items?.find((it) => it.type === 'lan');
-      setLanQty(lanItem ? lanItem.qty : 1);
+      const lQty = lanItem ? lanItem.qty : 1;
+      setLanQty(lQty);
 
       const rjItem = editTransaction.items?.find((it) => it.type === 'rj');
-      setRjQty(rjItem ? rjItem.qty : 1);
+      const rQty = rjItem ? rjItem.qty : 1;
+      setRjQty(rQty);
 
       setPaymentStatus(editTransaction.paymentStatus || 'PENDING');
       setPickupStatus(editTransaction.pickupStatus || 'Belum Diambil');
+
+      const expectedTotal =
+        (hasLan ? Math.max(0, Number(lQty) || 0) * 5000 : 0) +
+        (hasRj ? Math.max(0, Number(rQty) || 0) * 5000 : 0);
+
+      if (
+        editTransaction.total !== undefined &&
+        editTransaction.total !== null &&
+        Number(editTransaction.total) !== expectedTotal
+      ) {
+        setIsCustomTotal(true);
+        setCustomTotal(Number(editTransaction.total));
+      } else {
+        setIsCustomTotal(false);
+        setCustomTotal('');
+      }
     } else {
       // Default creation state
       setName('');
@@ -43,6 +64,8 @@ export default function PosModal({
       setRjQty(1);
       setPaymentStatus('PENDING');
       setPickupStatus('Belum Diambil');
+      setIsCustomTotal(false);
+      setCustomTotal('');
     }
   }, [isOpen, editTransaction]);
 
@@ -57,7 +80,29 @@ export default function PosModal({
   const rjPrice = 5000;
   const rjSubtotal = checkRj ? Math.max(0, Number(rjQty) || 0) * rjPrice : 0;
 
-  const grandTotal = lanSubtotal + rjSubtotal;
+  const calculatedTotal = lanSubtotal + rjSubtotal;
+  const grandTotal = isCustomTotal
+    ? (customTotal === '' ? 0 : Math.max(0, Number(customTotal) || 0))
+    : calculatedTotal;
+
+  const displayTotal = isCustomTotal
+    ? (customTotal === '' ? '' : Number(customTotal).toLocaleString('id-ID'))
+    : calculatedTotal.toLocaleString('id-ID');
+
+  const handleTotalChange = (e) => {
+    setIsCustomTotal(true);
+    const digits = e.target.value.replace(/\D/g, '');
+    if (!digits) {
+      setCustomTotal('');
+    } else {
+      setCustomTotal(Number(digits));
+    }
+  };
+
+  const handleResetTotal = () => {
+    setIsCustomTotal(false);
+    setCustomTotal('');
+  };
 
   let detectedCategory = 'PILIH MINIMAL 1 PRODUK';
   if (checkLan && checkRj) detectedCategory = 'KABEL LAN + RJ45';
@@ -114,7 +159,10 @@ export default function PosModal({
       total: grandTotal,
       paymentStatus,
       pickupStatus,
-      paymentMethod: editTransaction?.paymentMethod || 'Tunai / Cash'
+      paymentMethod: editTransaction?.paymentMethod || 'Tunai / Cash',
+      ...(editTransaction?.date ? { date: editTransaction.date } : {}),
+      ...(editTransaction?.customerPhone ? { customerPhone: editTransaction.customerPhone } : {}),
+      ...(editTransaction?.notes ? { notes: editTransaction.notes } : {})
     });
   };
 
@@ -332,11 +380,49 @@ export default function PosModal({
               </div>
             </div>
 
-            {/* 5. TOTAL HARGA */}
+            {/* 5. TOTAL HARGA (BISA DIEDIT) */}
             <div className="pos-total-callout">
               <div className="total-info">
-                <span>Total Harga:</span>
-                <h3 id="pos-calc-grand-total">{formatRp(grandTotal)}</h3>
+                <div className="total-label-row">
+                  <label htmlFor="pos-calc-grand-total">Total Harga:</label>
+                  {isCustomTotal && (
+                    <button
+                      type="button"
+                      className="btn-reset-total"
+                      onClick={handleResetTotal}
+                      title="Kembalikan ke hitungan harga otomatis dari item"
+                    >
+                      <i className="fa-solid fa-rotate-left"></i> Reset Otomatis
+                    </button>
+                  )}
+                </div>
+
+                <div className="total-input-box">
+                  <span className="total-currency-prefix">Rp</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    id="pos-calc-grand-total"
+                    className="pos-total-input-field"
+                    value={displayTotal}
+                    onChange={handleTotalChange}
+                    placeholder="0"
+                    title="Klik untuk mengubah total harga secara manual"
+                  />
+                  <label
+                    htmlFor="pos-calc-grand-total"
+                    className="total-edit-icon"
+                    title="Total harga dapat diedit manual"
+                  >
+                    <i className="fa-solid fa-pen-to-square"></i>
+                  </label>
+                </div>
+
+                {isCustomTotal && (
+                  <div className="custom-total-notice">
+                    <i className="fa-solid fa-circle-info"></i> Diubah manual (Standar item: {formatRp(calculatedTotal)})
+                  </div>
+                )}
               </div>
               <div className="total-badge-category" id="pos-detected-category">
                 {detectedCategory}

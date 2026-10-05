@@ -190,11 +190,13 @@ export default function App() {
   const handleSavePos = async (data) => {
     if (data.id) {
       // Edit existing
+      const existing = transactions.find((t) => t.id === data.id);
+      const merged = { ...existing, ...data };
       setTransactions((prev) =>
-        prev.map((t) => (t.id === data.id ? { ...t, ...data } : t))
+        prev.map((t) => (t.id === data.id ? merged : t))
       );
       if (isSupabaseConfigured) {
-        const res = await saveTransactionToCloud(data);
+        const res = await saveTransactionToCloud(merged);
         if (res?.error) {
           showToast(`Gagal simpan ke Supabase: ${res.error.message}`, 'danger');
         } else {
